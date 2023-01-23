@@ -1,0 +1,11 @@
+[package]
+name = "dyn_ord"
+version = "0.1.0"
+edition = "2018"
+authors = ["Árpád Goretity <h2co3@h2co3.org>"]
+description = "Equality and ordering for trait objects"
+readme = "README.md"
+repository = "https://github.com/H2CO3/dyn_ord"
+license = "MIT"
+keywords = ["ordering", "trait object", "dynamic typing"]
+categories = ["algorithms", "data-structures", "rust-patterns"]
