@@ -36,15 +36,7 @@ pub trait DynEq: Any {
     fn as_any(&self) -> &dyn Any;
 
     #[doc(hidden)]
-    fn as_dyn_eq_helper(&self) -> &dyn DynEqHelper;
-
-    #[doc(hidden)]
-    fn dyn_eq(&self, other: &dyn DynEqHelper) -> bool;
-}
-
-#[doc(hidden)]
-pub trait DynEqHelper {
-    fn static_eq(&self, other: &dyn DynEq) -> bool;
+    fn dyn_eq(&self, other: &dyn DynEq) -> bool;
 }
 
 impl<T: Any + PartialEq> DynEq for T {
@@ -52,20 +44,9 @@ impl<T: Any + PartialEq> DynEq for T {
         self
     }
 
-    fn as_dyn_eq_helper(&self) -> &dyn DynEqHelper {
-        self
-    }
-
-    fn dyn_eq(&self, other: &dyn DynEqHelper) -> bool {
-        other.static_eq(self)
-    }
-}
-
-#[doc(hidden)]
-impl<T: Any + PartialEq> DynEqHelper for T {
-    fn static_eq(&self, other: &dyn DynEq) -> bool {
-        if let Some(other) = other.as_any().downcast_ref::<Self>() {
-            self == other
+    fn dyn_eq(&self, other: &dyn DynEq) -> bool {
+        if let Some(other) = other.as_any().downcast_ref::<T>() {
+            *self == *other
         } else {
             false
         }
@@ -74,7 +55,7 @@ impl<T: Any + PartialEq> DynEqHelper for T {
 
 impl PartialEq for dyn DynEq {
     fn eq(&self, other: &Self) -> bool {
-        self.dyn_eq(other.as_dyn_eq_helper())
+        self.dyn_eq(other)
     }
 }
 
@@ -103,35 +84,15 @@ impl PartialEq for dyn DynEq {
 /// ```
 pub trait DynOrd: DynEq {
     #[doc(hidden)]
-    fn as_dyn_ord_helper(&self) -> &dyn DynOrdHelper;
-
-    #[doc(hidden)]
-    fn dyn_ord(&self, other: &dyn DynOrdHelper) -> Option<Ordering>;
-}
-
-#[doc(hidden)]
-pub trait DynOrdHelper {
-    fn static_ord(&self, other: &dyn DynOrd) -> Option<Ordering>;
+    fn dyn_ord(&self, other: &dyn DynOrd) -> Option<Ordering>;
 }
 
 impl<T: Any + PartialOrd> DynOrd for T {
-    fn as_dyn_ord_helper(&self) -> &dyn DynOrdHelper {
-        self
-    }
-
-    fn dyn_ord(&self, other: &dyn DynOrdHelper) -> Option<Ordering> {
-        other.static_ord(self)
-    }
-}
-
-#[doc(hidden)]
-impl<T: Any + PartialOrd> DynOrdHelper for T {
-    fn static_ord(&self, other: &dyn DynOrd) -> Option<Ordering> {
-        if let Some(other) = other.as_any().downcast_ref::<Self>() {
-            other.partial_cmp(self) // note the reversed order
-        } else {
-            None
-        }
+    fn dyn_ord(&self, other: &dyn DynOrd) -> Option<Ordering> {
+        other
+            .as_any()
+            .downcast_ref::<T>()
+            .and_then(|other| self.partial_cmp(other))
     }
 }
 
@@ -143,6 +104,6 @@ impl PartialEq for dyn DynOrd {
 
 impl PartialOrd for dyn DynOrd {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.dyn_ord(other.as_dyn_ord_helper())
+        self.dyn_ord(other)
     }
 }
