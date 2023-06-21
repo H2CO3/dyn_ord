@@ -53,7 +53,7 @@ impl<T: Any + PartialEq> DynEq for T {
     }
 }
 
-impl PartialEq for dyn DynEq {
+impl PartialEq for dyn DynEq + '_ {
     fn eq(&self, other: &Self) -> bool {
         self.dyn_eq(other)
     }
@@ -96,13 +96,13 @@ impl<T: Any + PartialOrd> DynOrd for T {
     }
 }
 
-impl PartialEq for dyn DynOrd {
+impl PartialEq for dyn DynOrd + '_ {
     fn eq(&self, other: &Self) -> bool {
-        self.partial_cmp(other) == Some(Ordering::Equal)
+        matches!(self.partial_cmp(other), Some(Ordering::Equal))
     }
 }
 
-impl PartialOrd for dyn DynOrd {
+impl PartialOrd for dyn DynOrd + '_ {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self.dyn_ord(other)
     }
